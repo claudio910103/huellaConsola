@@ -70,7 +70,7 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
          * @see Thread#run()
          */
         public void run() {
-            System.out.println("\n*** Console UI ***");
+            System.out.println("\n***    M E N U    ***");
 
             String activeReader = null;
             boolean readerSelected = false;
@@ -85,13 +85,13 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
                         if (readerSelected)
                             register(activeReader);
                         else
-                            System.out.println("No reader selected");
+                            System.out.println("No hay lector seleccionado");
                         break;
                     case MAIN_MENU_VERIFY:
                         if (readerSelected)
                             verify(activeReader);
                         else
-                            System.out.println("No reader selected");
+                            System.out.println("No hay lector seleccionado");
                         break;
                     case MAIN_MENU_ENUMERATE:
                         listReaders();
@@ -101,7 +101,7 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
                             activeReader = selectReader(activeReader);
                             readerSelected = true;
                         } catch (IndexOutOfBoundsException e) {
-                            System.out.println("There are no readers available");
+                            System.out.println("No hay lectores disponibles o no esta conectado");
                         }
                         break;
                 }
@@ -175,11 +175,11 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
         private static final Vector<MenuItem> mainMenu;
         static {
             mainMenu = new Vector<MenuItem>();
-            mainMenu.add(new MenuItem("List all available readers", MAIN_MENU_ENUMERATE));
-            mainMenu.add(new MenuItem("Select a reader", MAIN_MENU_SELECT));
-            mainMenu.add(new MenuItem("Add a person to the database", MAIN_MENU_ADD));
-            mainMenu.add(new MenuItem("Perform fingerprint enrollment", MAIN_MENU_ENROLL));
-            mainMenu.add(new MenuItem("Perform fingerprint verification", MAIN_MENU_VERIFY));
+            mainMenu.add(new MenuItem("Lista de todos los lectores disponibles", MAIN_MENU_ENUMERATE));
+            mainMenu.add(new MenuItem("Selecciona un lector", MAIN_MENU_SELECT));
+            mainMenu.add(new MenuItem("Agregar una persona a la base de datos", MAIN_MENU_ADD));
+            mainMenu.add(new MenuItem("Capturar Huella de la persona", MAIN_MENU_ENROLL));
+            mainMenu.add(new MenuItem("Verificacion de huella de la persona", MAIN_MENU_VERIFY));
         }
 
         private static final EnumMap<DPFPFingerIndex, String> fingerNames;
@@ -394,11 +394,11 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
         private void listReaders() {
             DPFPReadersCollection readers = DPFPGlobal.getReadersFactory().getReaders();
             if (readers == null || readers.size() == 0) {
-                System.out.printf("There are no readers available.\n");
+                System.out.printf("No hay lectores disponibles.\n");
                 return;
             }
 
-            System.out.printf("Available readers:\n");
+            System.out.printf("Lectores Disponibles:\n");
             for (DPFPReaderDescription readerDescription : readers)
                 System.out.println(readerDescription.getSerialNumber());
         }
@@ -412,14 +412,14 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
         String selectReader(String activeReader) throws IndexOutOfBoundsException {
             DPFPReadersCollection readers = DPFPGlobal.getReadersFactory().getReaders();
             if (readers == null || readers.size() == 0)
-                throw new IndexOutOfBoundsException("There are no readers available");
+                throw new IndexOutOfBoundsException("Sin lectores disponibles");
 
             Vector<MenuItem> menu = new Vector<MenuItem>();
             for (DPFPReaderDescription readerDescription : readers)
                 menu.add(new MenuItem(readerDescription.getSerialNumber(), menu.size()));
-            menu.add(new MenuItem("Any available readers", menu.size()));
+            menu.add(new MenuItem("Lector disponible :::: ", menu.size()));
 
-            int res = MenuShow(menu, MENU_WITH_BACK);
+            int res = MenuShow(menu, MENU_WITH_BACK);            
             if (res == backItem.getValue()) {
                 return activeReader;
             } else if (res == readers.size()) {

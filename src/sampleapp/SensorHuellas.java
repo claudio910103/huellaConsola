@@ -14,13 +14,14 @@ import java.sql.SQLException;
 import com.digitalpersona.onetouch.DPFPGlobal;
 import com.digitalpersona.onetouch.DPFPTemplate;
 import com.digitalpersona.onetouch.capture.DPFPCapture;
-import com.digitalpersona.onetouch.capture.event.DPFPDataAdapter;
 import com.digitalpersona.onetouch.capture.event.DPFPDataEvent;
-import com.digitalpersona.onetouch.capture.event.DPFPErrorAdapter;
-import com.digitalpersona.onetouch.capture.event.DPFPReaderStatusAdapter;
+import com.digitalpersona.onetouch.capture.event.DPFPDataListener;
+import com.digitalpersona.onetouch.capture.event.DPFPErrorEvent;
+import com.digitalpersona.onetouch.capture.event.DPFPErrorListener;
 import com.digitalpersona.onetouch.capture.event.DPFPReaderStatusEvent;
-import com.digitalpersona.onetouch.capture.event.DPFPSensorAdapter;
+import com.digitalpersona.onetouch.capture.event.DPFPReaderStatusListener;
 import com.digitalpersona.onetouch.capture.event.DPFPSensorEvent;
+import com.digitalpersona.onetouch.capture.event.DPFPSensorListener;
 import com.digitalpersona.onetouch.processing.DPFPEnrollment;
 import com.digitalpersona.onetouch.verification.DPFPVerification;
 
@@ -35,34 +36,63 @@ public class SensorHuellas {
 	Conexion con=new Conexion();
 	
 	protected void iniciar() {
-		lector.addDataListener(new DPFPDataAdapter() {
-			public void dataAcquired(final DPFPDataEvent e) {
+		lector.addDataListener(new DPFPDataListener() {
+			
+			@Override
+			public void dataAcquired(DPFPDataEvent arg0) {
 				EnviarTexto("Huella Capturada");
+				
 			}
 		});
 		
-		lector.addReaderStatusListener(new DPFPReaderStatusAdapter() {
-			public void readerConnected(DPFPReaderStatusEvent e) {
-				EnviarTexto("Sensor activo");
-			}
-			public void readerDisconnected(DPFPReaderStatusEvent e) {
+		lector.addReaderStatusListener(new DPFPReaderStatusListener() {
+			
+			@Override
+			public void readerDisconnected(DPFPReaderStatusEvent arg0) {
 				EnviarTexto("Sensor desconectado o inactivo");
+				
+			}
+			
+			@Override
+			public void readerConnected(DPFPReaderStatusEvent arg0) {
+				EnviarTexto("Sensor activo");
+				
 			}
 		});
 		
-		lector.addSensorListener(new DPFPSensorAdapter() {
-			public void fingerTouched(final DPFPSensorEvent e){
+		lector.addSensorListener(new DPFPSensorListener() {
+			
+			@Override
+			public void imageAcquired(DPFPSensorEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void fingerTouched(DPFPSensorEvent e) {
 				EnviarTexto("Dedo Colocado sobre el sensor");
+				
 			}
-			public void fingerGone(final DPFPSensorEvent e){
-				EnviarTexto("Dedo quitado del sensor");
+			
+			@Override
+			public void fingerGone(DPFPSensorEvent e) {
+				EnviarTexto("Dedo quitado sobre el sensor");
+				
 			}
 		});
 		
-		lector.addErrorListener(new DPFPErrorAdapter() {
-			@SuppressWarnings("unused")
-			public void errorReader(final DPFPErrorAdapter e){
+		lector.addErrorListener(new DPFPErrorListener() {
+			
+			@Override
+			public void exceptionCaught(DPFPErrorEvent e) {
 				EnviarTexto("Error: " + e.toString());
+				
+			}
+			
+			@Override
+			public void errorOccured(DPFPErrorEvent e) {
+				EnviarTexto("Error: " + e.toString());
+				
 			}
 		});
 	}

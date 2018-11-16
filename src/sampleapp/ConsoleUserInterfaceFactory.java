@@ -1,5 +1,12 @@
 package sampleapp;
 
+import database.Conexion;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import com.digitalpersona.onetouch.*;
 import com.digitalpersona.onetouch.capture.DPFPCapture;
 import com.digitalpersona.onetouch.capture.DPFPCapturePriority;
@@ -26,7 +33,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Implementation of UserInterface.Factory interface that creates a console-based user interface
  */
 public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
-
+	static Conexion con=new Conexion();
     /**
      * Creates an object implementing UserInterface interface
      *
@@ -90,6 +97,12 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
                     case MAIN_MENU_VERIFY:
                         if (readerSelected)
                             verify(activeReader);
+                        else
+                            System.out.println("No hay lector seleccionado");
+                        break;
+                    case MAIN_MENU_INDENTIFICAR:
+                    	if (readerSelected)
+                            identificar(activeReader);
                         else
                             System.out.println("No hay lector seleccionado");
                         break;
@@ -171,6 +184,7 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
         private static final int MAIN_MENU_ADD = 103;
         private static final int MAIN_MENU_ENROLL = 104;
         private static final int MAIN_MENU_VERIFY = 105;
+        private static final int MAIN_MENU_INDENTIFICAR = 106;
 
         private static final Vector<MenuItem> mainMenu;
         static {
@@ -180,6 +194,7 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
             mainMenu.add(new MenuItem("Agregar una persona a la base de datos", MAIN_MENU_ADD));
             mainMenu.add(new MenuItem("Capturar Huella de la persona", MAIN_MENU_ENROLL));
             mainMenu.add(new MenuItem("Verificacion de huella de la persona", MAIN_MENU_VERIFY));
+            mainMenu.add(new MenuItem("Identificar huella de la persona", MAIN_MENU_INDENTIFICAR));
         }
 
         private static final EnumMap<DPFPFingerIndex, String> fingerNames;
@@ -385,6 +400,50 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
                     }
                     System.out.printf("No matching fingers for \"%s\" were found.\n", username);
                 }
+            }
+        }
+        
+        private void identificar(String activeReader) {
+            System.out.printf("Iniciando Identificacion...\n");
+            try {
+        		Connection c = con.conectar();
+        		PreparedStatement consultaDB = c.prepareStatement("select Huella, UsuarioID  from HUELLAS order by FechaAlta desc ");
+        		ResultSet rs = consultaDB.executeQuery();
+        		boolean isNoCapturada = true;
+        		DPFPSample sample = getSample(activeReader, "Coloque el dedo sobre el sensor\n");
+                if (sample == null)
+                    throw new Exception();
+
+                DPFPFeatureExtraction featureExtractor = DPFPGlobal.getFeatureExtractionFactory().createFeatureExtraction();
+                DPFPFeatureSet featureSet = featureExtractor.createFeatureSet(sample, DPFPDataPurpose.DATA_PURPOSE_VERIFICATION);
+
+                DPFPVerification matcher = DPFPGlobal.getVerificationFactory().createVerification();
+                matcher.setFARRequested(DPFPVerification.MEDIUM_SECURITY_FAR);        		
+        		
+        		while (rs.next()) {
+        			byte huellaBLOB[]=rs.getBytes("Huella");
+                    String usuarioID = rs.getString("UsuarioID");
+                    DPFPTemplate template = DPFPGlobal.getTemplateFactory().createTemplate(huellaBLOB);
+                    if (template != null) {
+                        DPFPVerificationResult result = matcher.verify(featureSet, template);
+                        if (result.isVerified()) {
+                            System.out.println("Huella coincide con: "+usuarioID+"\n");
+                            isNoCapturada = false;		
+                            return;
+                        }
+                    }
+        		}
+        		
+        		if(isNoCapturada){
+                    System.out.println("Huella no reconocida");
+                }
+        		
+        	} catch (SQLException e) {
+                System.err.println("Error al identificar huella dactilar. "+e.getMessage());            
+            } catch (Exception e) {
+                System.out.printf("Error al leer la huella");
+            } finally{
+                con.desconectar();
             }
         }
 

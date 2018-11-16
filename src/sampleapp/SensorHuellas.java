@@ -28,9 +28,9 @@ import com.digitalpersona.onetouch.verification.DPFPVerification;
 public class SensorHuellas {
 
 	private DPFPCapture lector = DPFPGlobal.getCaptureFactory().createCapture();
-	private DPFPVerification verificador = DPFPGlobal.getVerificationFactory().createVerification();
+	//private DPFPVerification verificador = DPFPGlobal.getVerificationFactory().createVerification();
 	private DPFPEnrollment reclutador = DPFPGlobal.getEnrollmentFactory().createEnrollment();
-	private DPFPTemplate template;
+	//private DPFPTemplate template;
 	public static String TEMPLATE_PROPERTY = "template";
 	
 	Conexion con=new Conexion();
@@ -102,7 +102,7 @@ public class SensorHuellas {
     }
 	
 	public void estadoHuellas(){
-        EnviarTexto("Muestra de Huellas necesarias para guardar el template" +
+        EnviarTexto("Muestra de Huellas necesarias para guardar el template " +
         reclutador.getFeaturesNeeded());
     }
 	
@@ -115,12 +115,7 @@ public class SensorHuellas {
         lector.stopCapture();
         EnviarTexto("No se esta utilizando el lector");
     }
-    /*
-    public void setTemplate(DPFPTemplate template){
-        DPFPTemplate old = this.template;
-        this.template = template;
-        firePropertyChange(TEMPLATE_PROPERTY, old, template);
-    }*/
+    
     
     public void identificarHuella() {
     	try {

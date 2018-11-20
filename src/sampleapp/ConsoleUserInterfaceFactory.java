@@ -1,5 +1,8 @@
 package sampleapp;
-
+/**
+*
+* @author claudio
+*/
 import database.Conexion;
 
 import java.sql.Connection;
@@ -25,6 +28,8 @@ import com.digitalpersona.onetouch.verification.DPFPVerificationResult;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.EnumMap;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -34,6 +39,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
 	static Conexion con=new Conexion();
+	static InetAddress IP;
     /**
      * Creates an object implementing UserInterface interface
      *
@@ -110,8 +116,7 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
                     case MAIN_MENU_ENUMERATE:
                         listReaders();
                         break;
-                    case MAIN_MENU_SELECT:
-                    	System.out.println("Identificacion de huella");
+                    case MAIN_MENU_SELECT:                    							
                         try {
                             activeReader = selectReader(activeReader);
                             readerSelected = true;
@@ -437,6 +442,20 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
                         DPFPVerificationResult result = matcher.verify(featureSet, template);
                         if (result.isVerified()) {
                             System.out.println("\n Huella coincide con: "+usuarioID+"\n");
+                            //actualizamos la tabla de AUTORIZACIONES
+                            try {
+    							IP = InetAddress.getLocalHost();  							
+    							
+    							String updateDB = " UPDATE AUTORIZACIONES set Autorizacion='ACEPTADO',UsuarioID='"+usuarioID+"'\r\n" + 
+    									" WHERE DireccionIP = '"+IP.getHostAddress()+"' AND Autorizacion = 'SOLICITADO'  order by HoraPeticion desc limit 1";
+    							
+    							PreparedStatement ps = c.prepareStatement(updateDB);
+    							ps.executeUpdate();
+    							ps.close();
+    						} catch (UnknownHostException e) {
+    							e.printStackTrace();
+    						}                       
+                            
                             isNoCapturada = false;		
                             return;
                         }

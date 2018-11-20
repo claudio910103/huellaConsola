@@ -77,15 +77,16 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
          * @see Thread#run()
          */
         public void run() {
-            System.out.println("\n***    M E N U    ***");
+            System.out.println("\n***            Iniciando....          ***");
 
             String activeReader = null;
             boolean readerSelected = false;
 
             int res;
-            while ((res = MenuShow(mainMenu, MENU_WITH_EXIT)) != exitItem.getValue()) try {
+            //while ((res = MenuShow(mainMenu, MENU_WITH_EXIT)) != exitItem.getValue()) try {
+            while ((res = 102) != exitItem.getValue()) try {
                 switch (res) {
-                    case MAIN_MENU_ADD:
+                    case MAIN_MENU_ADD:                    	
                         addUser();
                         break;
                     case MAIN_MENU_ENROLL:
@@ -110,11 +111,19 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
                         listReaders();
                         break;
                     case MAIN_MENU_SELECT:
+                    	System.out.println("Identificacion de huella");
                         try {
                             activeReader = selectReader(activeReader);
                             readerSelected = true;
+                            if (readerSelected)
+                                identificar(activeReader);
+                            else
+                                System.out.println("No hay lector seleccionado");
+                            break;
                         } catch (IndexOutOfBoundsException e) {
-                            System.out.println("No hay lectores disponibles o no esta conectado");
+                            System.out.println("No hay lectores disponibles o no esta conectado\n");
+                            System.out.println("Finalizando programa");
+                            System.exit(0);
                         }
                         break;
                 }
@@ -427,7 +436,7 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
                     if (template != null) {
                         DPFPVerificationResult result = matcher.verify(featureSet, template);
                         if (result.isVerified()) {
-                            System.out.println("Huella coincide con: "+usuarioID+"\n");
+                            System.out.println("\n Huella coincide con: "+usuarioID+"\n");
                             isNoCapturada = false;		
                             return;
                         }
@@ -435,13 +444,13 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
         		}
         		
         		if(isNoCapturada){
-                    System.out.println("Huella no reconocida");
+                    System.out.println("* Huella no reconocida");
                 }
         		
         	} catch (SQLException e) {
-                System.err.println("Error al identificar huella dactilar. "+e.getMessage());            
+                System.err.println("* Error al identificar huella dactilar. "+e.getMessage());            
             } catch (Exception e) {
-                System.out.printf("Error al leer la huella");
+                System.out.printf("* Error al leer la huella");
             } finally{
                 con.desconectar();
             }
@@ -471,20 +480,22 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
         String selectReader(String activeReader) throws IndexOutOfBoundsException {
             DPFPReadersCollection readers = DPFPGlobal.getReadersFactory().getReaders();
             if (readers == null || readers.size() == 0)
-                throw new IndexOutOfBoundsException("Sin lectores disponibles");
+                throw new IndexOutOfBoundsException("** Sin lectores disponibles");
 
             Vector<MenuItem> menu = new Vector<MenuItem>();
             for (DPFPReaderDescription readerDescription : readers)
                 menu.add(new MenuItem(readerDescription.getSerialNumber(), menu.size()));
             menu.add(new MenuItem("Lector disponible :::: ", menu.size()));
 
-            int res = MenuShow(menu, MENU_WITH_BACK);            
+            //int res = MenuShow(menu, MENU_WITH_BACK);
+            int res = 1;
             if (res == backItem.getValue()) {
                 return activeReader;
             } else if (res == readers.size()) {
                 return null;
             } else {
-                return readers.get(res).getSerialNumber();
+            	System.out.println("Lector seleccionado :"+readers.get(res).getSerialNumber());
+                return readers.get(res).getSerialNumber();                
             }
         }
 
@@ -519,12 +530,12 @@ public class ConsoleUserInterfaceFactory implements UserInterface.Factory {
             	int lastStatus = DPFPReaderStatusEvent.READER_CONNECTED;
 				public void readerConnected(DPFPReaderStatusEvent e) {
 					if (lastStatus != e.getReaderStatus())
-						System.out.println("Reader is connected");
+						System.out.println("Lector conectado");
 					lastStatus = e.getReaderStatus();
 				}
 				public void readerDisconnected(DPFPReaderStatusEvent e) {
 					if (lastStatus != e.getReaderStatus())
-						System.out.println("Reader is disconnected");
+						System.out.println("Lector desconectado");
 					lastStatus = e.getReaderStatus();
 				}
             	
